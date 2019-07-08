@@ -117,21 +117,21 @@ class Drive:
 
 def main():
     drive = Drive()
-    # drive.get_token("<service-account-here>")
-    drive.get_token("zerotrust@zerotrust-246114.iam.gserviceaccount.com")
-    # drive.get_token("service-account-2@hyperqubesite.iam.gserviceaccount.com")
+    drive.get_token("<service-account-here>")
+
     print(drive.get_file_list())
     print('-' * 50)
     print()
-    # print(drive.get_file_permissions('<any-file-id>'))
-    # print(drive.get_file_permissions('0B5F0TQr2Zeblc3RhcnRlcl9maWxl'))
-    print('-' * 50)
-    print()
+
     drives = drive.get_drives()
     print(drives)
     print('-' * 50)
     print()
     print(drive.get_drive_contents(drives['drives'][0]['id']))
+    print()
+
+    print(drive.get_file_permissions('<any-file-id>'))
+    print('-' * 50)
 
 
 if __name__ == '__main__':
