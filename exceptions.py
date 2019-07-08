@@ -21,3 +21,10 @@ class TokenRequired(Error):
 
 class InvalidTimeToLive(Error):
     pass
+
+
+# ------------------------------------------------------------------------------
+
+class EnvironmentVariableNotSet(Error):
+    def __str__(self):
+        return f'\n\t- {self.expression}\n\t- {self.message}'
