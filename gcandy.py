@@ -5,7 +5,7 @@ import jwt
 import requests
 import os
 from exceptions import TokenRequired, InvalidTimeToLive, \
-    EnvironmentVariableNotSet
+    EnvironmentVariableNotSet, InvalidRole
 from datetime import datetime, timedelta
 
 """
@@ -30,6 +30,12 @@ class Drive:
         self.key = self.key.replace('\\n', '\n')
         self.base_url = 'https://www.googleapis.com/drive/v3/'
         self.access_token = None
+        self.privilege_roles = ['reader',
+                                'commenter',
+                                'writer',
+                                'fileOrganizer',
+                                'organizer',
+                                'owner']  # ordered low to high
 
         self.get_token(self.iss, self.key)
 
@@ -76,28 +82,88 @@ class Drive:
 
         return self.access_token
 
-    def get_file_list(self):
-        url = self.build_url('files/')
-        resp = requests.get(url)
-        return resp.json()
-
-    def get_file_permissions(self, file_id):
-        url = self.build_url(f'files/{file_id}/permissions')
+    def get_files(self, fields='*'):
+        url = self.build_url('files/', fields=fields)
         resp = requests.get(url)
         return resp.json()
 
     def get_drives(self):
-        url = self.build_url(f'drives/')
+        url = self.build_url('drives/')
         resp = requests.get(url)
         return resp.json()
 
-    def get_drive_contents(self, drive_id):
-        url = self.build_url(f'files/', driveId=drive_id,
+    def get_drive_contents(self, drive_id):  # TODO document support, fix url
+        url = self.build_url('files/', driveId=drive_id,
                              includeItemsFromAllDrives='True', corpora='drive',
                              supportsAllDrives='True')
         print(url)
         resp = requests.get(url)
         return resp.json()
+
+    def get_file_permissions(self, file_id):  # TODO test if works for drives
+        url = self.build_url(f'files/{file_id}/permissions')
+        resp = requests.get(url)
+        return resp.json()
+
+    def get_file_permission(self, file_id, permission_id):
+        url = self.build_url(f'files/{file_id}/permissions/{permission_id}')
+        resp = requests.get(url)
+        return resp.json()
+
+    # Edit permissions ---------------------------------------------------------
+    def remove_permission(self, file_id, permission_id, fields='*'):
+        """
+        Args:
+            file_id: id of file in question
+            fields: "The paths of the fields you want included in the response.
+                If not specified, the response includes a default set of fields
+                specific to this method. For development you can use the special
+                value '*' to return all fields, but you'll achieve greater
+                performance by only selecting the fields you need."
+            permission_id: id of permission to remove
+
+        Returns:
+            JSON response, if successful a "Permissions Resource"
+            (https://developers.google.com/drive/api/v3/reference/permissions#resource)
+        """
+        url = self.build_url(f'files/{file_id}/permissions/{permission_id}',
+                             fields=fields)
+        resp = requests.delete(url)
+        return resp.json()
+
+    def update_permission(self, file_id, permission_id,
+                          new_role, fields='*'):  # TODO expiration time
+        """
+        Args:
+            file_id: id of file in question
+            permission_id: id of permissions to update
+            new_role: integer 1 (reader privileges) to 6 (owner privileges)
+                or valid role name as a string.
+            fields: "The paths of the fields you want included in the response.
+                If not specified, the response includes a default set of fields
+                specific to this method. For development you can use the special
+                value '*' to return all fields, but you'll achieve greater
+                performance by only selecting the fields you need."
+        Returns:
+            JSON response, if successful a "Permissions Resource"
+            (https://developers.google.com/drive/api/v3/reference/permissions#resource)
+        """
+        url = self.build_url(f'files/{file_id}/permissions/{permission_id}',
+                             fields=fields)
+        role = None
+        try:
+            if new_role in self.privilege_roles:
+                body = new_role
+            else:
+                body = self.privilege_roles[new_role]
+        except Exception:
+            raise InvalidRole(f'update_permission({file_id}, {permission_id}, '
+                              f'{new_role})',
+                              'Enter a valid role name as a string or an int 1 '
+                              '(reader privileges) to 6 (owner privileges)')
+        body = {'role': role}
+
+        requests.patch(url, data=body)
 
     # Helper Functions ---------------------------------------------------------
     def build_url_backup(self, path, **kwargs):
@@ -108,7 +174,6 @@ class Drive:
             exp = f'build_url(path={path}, access_token=self.access_token)'
             msg = 'No access_token. Get an access token by calling getToken()' \
                   ' or provide one as a parameter.'
-            # raise Exception(msg)
             raise TokenRequired(exp, msg)
         return f'{self.base_url}{path}?access_token={access_token}'
 
@@ -131,23 +196,21 @@ class Drive:
         return f'{self.base_url}{path}?access_token={access_token}'
 
 
-def main():
-    drive = Drive()
+class Demo:
+    def __init__(self):
+        drive = Drive()
+        self.demo_print(drive.get_files())
+        drives = drive.get_drives()
+        self.demo_print(drives)
+        self.demo_print(drive.get_drive_contents(drives['drives'][0]['id']))
+        # drive.get_file_permissions('<any-file-id>')
 
-    print(drive.get_file_list())
-    print('-' * 50)
-    print()
-
-    drives = drive.get_drives()
-    print(drives)
-    print('-' * 50)
-    print()
-    print(drive.get_drive_contents(drives['drives'][0]['id']))
-    print()
-
-    # print(drive.get_file_permissions('<any-file-id>'))
-    # print('-' * 50)
+    @staticmethod
+    def demo_print(self, string):
+        print(string)
+        print('-' * 50)
+        print()
 
 
 if __name__ == '__main__':
-    main()
+    Demo()
