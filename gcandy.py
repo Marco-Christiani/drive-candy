@@ -202,11 +202,11 @@ class Demo:
         self.demo_print(drive.get_files())
         drives = drive.get_drives()
         self.demo_print(drives)
-        self.demo_print(drive.get_drive_contents(drives['drives'][0]['id']))
+        # self.demo_print(drive.get_drive_contents(drives['drives'][0]['id']))
         # drive.get_file_permissions('<any-file-id>')
 
     @staticmethod
-    def demo_print(self, string):
+    def demo_print(string):
         print(string)
         print('-' * 50)
         print()
