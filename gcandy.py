@@ -14,12 +14,16 @@ Google Drive instance
 
 class Drive:
     def __init__(self):
+        iss = os.environ['ISS']
+        self.iss = iss
         key = os.environ['KEY']
         self.key = key.replace('\\n', '\n')
         self.base_url = 'https://www.googleapis.com/drive/v3/'
         self.access_token = None
 
-    def get_token(self, iss, ttl=60):
+        self.get_token(iss, key)
+
+    def get_token(self, iss, key, ttl=60):
         """
         Requests an access token from Google by sending a JWT.
 
@@ -27,6 +31,8 @@ class Drive:
             iss: the issuer claim identifies the principal that issued the
             JWT. The iss value is a case-sensitive string containing a
             StringOrURI value. (rfc7519 section-4.1.1)
+
+            key: private key
 
             ttl: time to live in minutes, max ttl for an access token is
             60 minutes
@@ -117,7 +123,6 @@ class Drive:
 
 def main():
     drive = Drive()
-    drive.get_token("<service-account-here>")
 
     print(drive.get_file_list())
     print('-' * 50)
@@ -130,8 +135,8 @@ def main():
     print(drive.get_drive_contents(drives['drives'][0]['id']))
     print()
 
-    print(drive.get_file_permissions('<any-file-id>'))
-    print('-' * 50)
+    # print(drive.get_file_permissions('<any-file-id>'))
+    # print('-' * 50)
 
 
 if __name__ == '__main__':
