@@ -23,7 +23,9 @@ class InvalidTimeToLive(Error):
     pass
 
 
-# ------------------------------------------------------------------------------
+class InvalidRole(Error):
+    pass
+
 
 class EnvironmentVariableNotSet(Error):
     def __str__(self):
