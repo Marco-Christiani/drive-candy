@@ -4,24 +4,34 @@ Wrapper for the Google Drive HTTP REST API.
 import jwt
 import requests
 import os
-from exceptions import TokenRequired, InvalidTimeToLive
+from exceptions import TokenRequired, InvalidTimeToLive, \
+    EnvironmentVariableNotSet
 from datetime import datetime, timedelta
 
 """
-Google Drive instance
+Google Drive instance built for Drive API v3
 """
 
 
 class Drive:
-    def __init__(self):
-        iss = os.environ['ISS']
-        self.iss = iss
-        key = os.environ['KEY']
-        self.key = key.replace('\\n', '\n')
+    def __init__(self, iss=None, key=None):
+        self.iss = iss or os.getenv('ISS')
+        self.key = key or os.getenv('KEY').replace('\\n', '\n')
+
+        if not self.iss:
+            raise EnvironmentVariableNotSet(
+                'Issuer claim is needed for JSON Web Token (JWT)',
+                'Set as environment variable \"ISS\" or pass as parameter')
+        if not self.key:
+            raise EnvironmentVariableNotSet(
+                'KEY (private key) is needed for JSON Web Token (JWT)',
+                'Set as environment variable \"KEY\" or pass as parameter')
+
+        self.key = self.key.replace('\\n', '\n')
         self.base_url = 'https://www.googleapis.com/drive/v3/'
         self.access_token = None
 
-        self.get_token(iss, key)
+        self.get_token(self.iss, self.key)
 
     def get_token(self, iss, key, ttl=60):
         """
@@ -50,7 +60,7 @@ class Drive:
             "exp": datetime.utcnow() + timedelta(minutes=ttl)
         }
 
-        encoded_jwt = jwt.encode(fields, self.key, algorithm='RS256')
+        encoded_jwt = jwt.encode(fields, key, algorithm='RS256')
         grant_type = 'urn:ietf:params:oauth:grant-type:jwt-bearer'
 
         resp = requests.post('https://www.googleapis.com/oauth2/v4/token',
