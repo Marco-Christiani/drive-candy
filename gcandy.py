@@ -16,7 +16,7 @@ Google Drive instance built for Drive API v3
 class Drive:
     def __init__(self, iss=None, key=None):
         self.iss = iss or os.getenv('ISS')
-        self.key = key or os.getenv('KEY').replace('\\n', '\n')
+        self.key = key or os.getenv('KEY')
 
         if not self.iss:
             raise EnvironmentVariableNotSet(
@@ -92,7 +92,7 @@ class Drive:
         resp = requests.get(url)
         return resp.json()
 
-    def get_drive_contents(self, drive_id):  # TODO document support, fix url
+    def get_drive_contents(self, drive_id):  # TODO document support, fix url (params will be deprecated)
         url = self.build_url('files/', driveId=drive_id,
                              includeItemsFromAllDrives='True', corpora='drive',
                              supportsAllDrives='True')
@@ -150,12 +150,11 @@ class Drive:
         """
         url = self.build_url(f'files/{file_id}/permissions/{permission_id}',
                              fields=fields)
-        role = None
         try:
             if new_role in self.privilege_roles:
-                body = new_role
+                role = new_role
             else:
-                body = self.privilege_roles[new_role]
+                role = self.privilege_roles[new_role]
         except Exception:
             raise InvalidRole(f'update_permission({file_id}, {permission_id}, '
                               f'{new_role})',
