@@ -4,17 +4,20 @@ Wrapper for the Google Drive HTTP REST API.
 import jwt
 import requests
 import os
-from exceptions import TokenRequired, InvalidTimeToLive, \
+from .exceptions import TokenRequired, InvalidTimeToLive, \
     EnvironmentVariableNotSet, InvalidRole
 from datetime import datetime, timedelta
+from typing import Optional
 
 """
-Google Drive instance built for Drive API v3
+Google Drive instance. Stores access token and JWT auth data.
 """
 
 
 class Drive:
-    def __init__(self, iss=None, key=None):
+    def __init__(self,
+                 iss: Optional[str] = None,
+                 key: Optional[str] = None):
         self.iss = iss or os.getenv('ISS')
         self.key = key or os.getenv('KEY')
 
@@ -37,9 +40,12 @@ class Drive:
                                 'organizer',
                                 'owner']  # ordered low to high
 
-        self.get_token(self.iss, self.key)
+        self.get_token()
 
-    def get_token(self, iss, key, ttl=60):
+    def get_token(self,
+                  iss: Optional[str] = None,
+                  key: Optional[str] = None,
+                  ttl: Optional[int] = 60) -> str:
         """
         Requests an access token from Google by sending a JWT.
 
@@ -53,6 +59,9 @@ class Drive:
             ttl: time to live in minutes, max ttl for an access token is
             60 minutes
         """
+        iss = iss or self.iss
+        key = key or self.key
+
         if not (1 <= ttl <= 60):
             raise InvalidTimeToLive(
                 f'get_token({iss}, ttl={ttl})',
@@ -82,17 +91,19 @@ class Drive:
 
         return self.access_token
 
-    def get_files(self, fields='*'):
+    def get_files(self, fields: Optional[str] = '*') -> dict:
         url = self.build_url('files/', fields=fields)
         resp = requests.get(url)
         return resp.json()
 
-    def get_drives(self):
+    def get_drives(self) -> dict:
         url = self.build_url('drives/')
         resp = requests.get(url)
         return resp.json()
 
-    def get_drive_contents(self, drive_id):  # TODO document support, fix url (params will be deprecated)
+    def get_drive_contents(self,
+                           drive_id: str) -> dict:
+        # TODO document support, fix url (params will be deprecated)
         url = self.build_url('files/', driveId=drive_id,
                              includeItemsFromAllDrives='True', corpora='drive',
                              supportsAllDrives='True')
@@ -100,18 +111,20 @@ class Drive:
         resp = requests.get(url)
         return resp.json()
 
-    def get_file_permissions(self, file_id):  # TODO test if works for drives
+    def get_file_permissions(self,
+                             file_id: str) -> dict:  # TODO test if works for drives
         url = self.build_url(f'files/{file_id}/permissions')
         resp = requests.get(url)
         return resp.json()
 
-    def get_file_permission(self, file_id, permission_id):
+    def get_file_permission(self, file_id: str, permission_id: str) -> dict:
         url = self.build_url(f'files/{file_id}/permissions/{permission_id}')
         resp = requests.get(url)
         return resp.json()
 
     # Edit permissions ---------------------------------------------------------
-    def remove_permission(self, file_id, permission_id, fields='*'):
+    def remove_permission(self, file_id: str, permission_id: str,
+                          fields: Optional[str] = '*') -> dict:
         """
         Args:
             file_id: id of file in question
@@ -131,8 +144,9 @@ class Drive:
         resp = requests.delete(url)
         return resp.json()
 
-    def update_permission(self, file_id, permission_id,
-                          new_role, fields='*'):  # TODO expiration time
+    def update_permission(self, file_id: str, permission_id: str,
+                          new_role: str, fields: Optional[str] = '*'):
+        # TODO expiration time
         """
         Args:
             file_id: id of file in question
@@ -163,6 +177,7 @@ class Drive:
         body = {'role': role}
 
         requests.patch(url, data=body)
+        # TODO handle http reponse code (i.e. 200, 500, etc)
 
     # Helper Functions ---------------------------------------------------------
     def build_url_backup(self, path, **kwargs):
@@ -176,7 +191,7 @@ class Drive:
             raise TokenRequired(exp, msg)
         return f'{self.base_url}{path}?access_token={access_token}'
 
-    def build_url(self, path, **kwargs):
+    def build_url(self, path, **kwargs) -> str:
         try:
             access_token = kwargs.pop('access_token')
         except KeyError:
@@ -193,25 +208,3 @@ class Drive:
             return f'{self.base_url}{path}?access_token={access_token}&{args}'
 
         return f'{self.base_url}{path}?access_token={access_token}'
-
-
-class Demo:
-    def __init__(self):
-        drive = Drive()
-        self.demo_print(drive.get_files())
-        drives = drive.get_drives()
-        self.demo_print(drives)
-        drive_id = drives['drives'][0]['id']
-        self.demo_print(drive.get_drive_contents(drive_id))
-        # self.demo_print(drive.get_drive_contents(drives['drives'][0]['id']))
-        # drive.get_file_permissions('<any-file-id>')
-
-    @staticmethod
-    def demo_print(string):
-        print(string)
-        print('-' * 50)
-        print()
-
-
-if __name__ == '__main__':
-    Demo()

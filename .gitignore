@@ -1,0 +1,5 @@
+.idea/
+.json
+.flake8
+.env
+.pyc
