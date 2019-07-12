@@ -1,15 +1,15 @@
 from setuptools import setup
+from os import path
 
-
-def readme():
-    with open('README.rst') as f:
-        return f.read()
-
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 setup(name='gcandy',
-      version='0.0.4',
+      version='0.1.0',
       description='Python wrappers for Google REST APIs.',
-      long_description=readme(),
+      long_description=long_description,
+      long_description_content_type='text/markdown',
       url='https://github.com/Marco-Christiani/drive-candy',
       author='Marco Christiani',
       author_email='mchristiani2017@gmail.com',

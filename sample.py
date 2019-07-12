@@ -5,9 +5,12 @@ Sample usage of gcandy:
     3. prints shared drive's contents
     4. prints a file's permissions within a shared drive
 
-Before running sample obtain your ISS (email address) and private key values
-from Google Console and set as environment variables "ISS" and "KEY" or pass to
-function (see comments).
+1. Using service account:
+    Obtain your ISS (email address) and private key values
+    from Google Console and set as environment variables "ISS" and "KEY" or pass to
+    function (see comments).
+2. Using your own account:
+    Create oauth2 credentials from Google Console
 
 More information on ISS and private key here:
 https://developers.google.com/identity/protocols/OAuth2ServiceAccount

@@ -7,7 +7,12 @@ import os
 from .exceptions import TokenRequired, InvalidTimeToLive, \
     EnvironmentVariableNotSet, InvalidRole
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Dict
+
+# https://accounts.google.com/o/oauth2/v2/auth? TODO add support for standard oauth
+# client_id=<>
+# &redirect_uri=http://localhost:8000/
+# &scope=https://www.googleapis.com/auth/drive&response_type=code
 
 """
 Google Drive instance. Stores access token and JWT auth data.
@@ -17,7 +22,8 @@ Google Drive instance. Stores access token and JWT auth data.
 class Drive:
     def __init__(self,
                  iss: Optional[str] = None,
-                 key: Optional[str] = None):
+                 key: Optional[str] = None,
+                 ):
         self.iss = iss or os.getenv('ISS')
         self.key = key or os.getenv('KEY')
 
@@ -40,8 +46,11 @@ class Drive:
                                 'organizer',
                                 'owner']  # ordered low to high
 
+        # self.get_token_personal() TODO add personal account support
+        # self.get_token_service_account()
         self.get_token()
 
+    # List[str, str, int][
     def get_token(self,
                   iss: Optional[str] = None,
                   key: Optional[str] = None,
