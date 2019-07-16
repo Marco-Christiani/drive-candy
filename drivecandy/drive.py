@@ -116,13 +116,20 @@ class Drive:
         url = self.build_url('files/', driveId=drive_id,
                              includeItemsFromAllDrives='True', corpora='drive',
                              supportsAllDrives='True')
-        print(url)
         resp = requests.get(url)
         return resp.json()
 
     def get_file_permissions(self,
                              file_id: str) -> dict:  # TODO test if works for drives
-        url = self.build_url(f'files/{file_id}/permissions')
+        url = self.build_url(f'files/{file_id}/permissions', fields='*',
+                             supportsAllDrives='True')
+        resp = requests.get(url)
+        return resp.json()
+
+    def get_drive_permissions(self, drive_id: str) -> dict:
+        url = self.build_url(f'files/{drive_id}/permissions',
+                             supportsAllDrives='True',
+                             )
         resp = requests.get(url)
         return resp.json()
 
@@ -154,7 +161,7 @@ class Drive:
         return resp.json()
 
     def update_permission(self, file_id: str, permission_id: str,
-                          new_role: str, fields: Optional[str] = '*'):
+                          new_role: str, exp_date: datetime, fields: Optional[str] = '*'):
         # TODO expiration time
         """
         Args:
@@ -162,6 +169,7 @@ class Drive:
             permission_id: id of permissions to update
             new_role: integer 1 (reader privileges) to 6 (owner privileges)
                 or valid role name as a string.
+            exp_date: date the new permission will expire (<1yr in the future)
             fields: "The paths of the fields you want included in the response.
                 If not specified, the response includes a default set of fields
                 specific to this method. For development you can use the special
@@ -183,7 +191,10 @@ class Drive:
                               f'{new_role})',
                               'Enter a valid role name as a string or an int 1 '
                               '(reader privileges) to 6 (owner privileges)')
-        body = {'role': role}
+        if exp_date:
+            body = {'role': role, 'expirationTime': exp_date}
+        else:
+            body = {'role': role}
 
         requests.patch(url, data=body)
         # TODO handle http reponse code (i.e. 200, 500, etc)
