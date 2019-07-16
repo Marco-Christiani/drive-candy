@@ -196,7 +196,8 @@ class Drive:
         else:
             body = {'role': role}
 
-        requests.patch(url, data=body)
+        resp = requests.patch(url, data=body)
+        return resp.json()
         # TODO handle http reponse code (i.e. 200, 500, etc)
 
     # Helper Functions ---------------------------------------------------------
