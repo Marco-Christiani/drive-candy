@@ -105,6 +105,11 @@ class Drive:
         resp = requests.get(url)
         return resp.json()
 
+    def get_file(self, file_id: str, fields: Optional[str] = '*') -> dict:
+        url = self.build_url(f'files/{file_id}', fields=fields)
+        resp = requests.get(url)
+        return resp.json()
+
     def get_drives(self) -> dict:
         url = self.build_url('drives/')
         resp = requests.get(url)
@@ -119,28 +124,29 @@ class Drive:
         resp = requests.get(url)
         return resp.json()
 
-    def get_file_permissions(self,
-                             file_id: str) -> dict:  # TODO test if works for drives
+    def get_permissions(self,
+                        file_id: str) -> dict:  # TODO test if works for drives
         url = self.build_url(f'files/{file_id}/permissions', fields='*',
                              supportsAllDrives='True')
         resp = requests.get(url)
         return resp.json()
 
-    def get_drive_permissions(self, drive_id: str) -> dict:
-        url = self.build_url(f'files/{drive_id}/permissions',
-                             supportsAllDrives='True',
-                             )
-        resp = requests.get(url)
-        return resp.json()
+    # def get_drive_permissions(self, drive_id: str) -> dict:
+    #     url = self.build_url(f'files/{drive_id}/permissions',
+    #                          supportsAllDrives='True',
+    #                          )
+    #     resp = requests.get(url)
+    #     return resp.json()
 
-    def get_file_permission(self, file_id: str, permission_id: str) -> dict:
+    def get_permission(self, file_id: str, permission_id: str) -> dict:
         url = self.build_url(f'files/{file_id}/permissions/{permission_id}')
         resp = requests.get(url)
         return resp.json()
 
     # Edit permissions ---------------------------------------------------------
     def remove_permission(self, file_id: str, permission_id: str,
-                          fields: Optional[str] = '*') -> dict:
+                          fields: Optional[str] = '*',
+                          supportsAllDrives='True') -> dict:
         """
         Args:
             file_id: id of file in question
@@ -161,7 +167,8 @@ class Drive:
         return resp.json()
 
     def update_permission(self, file_id: str, permission_id: str,
-                          new_role: str, exp_date: datetime, fields: Optional[str] = '*'):
+                          new_role: str, exp_date: datetime,
+                          fields: Optional[str] = '*'):
         # TODO expiration time
         """
         Args:
