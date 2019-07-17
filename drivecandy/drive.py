@@ -103,17 +103,17 @@ class Drive:
     def get_files(self, fields: Optional[str] = '*') -> dict:
         url = self.build_url('files/', fields=fields)
         resp = requests.get(url)
-        return resp.json()
+        return resp.json(), resp.status_code
 
     def get_file(self, file_id: str, fields: Optional[str] = '*') -> dict:
         url = self.build_url(f'files/{file_id}', fields=fields)
         resp = requests.get(url)
-        return resp.json()
+        return resp.json(), resp.status_code
 
     def get_drives(self) -> dict:
         url = self.build_url('drives/')
         resp = requests.get(url)
-        return resp.json()
+        return resp.json(), resp.status_code
 
     def get_drive_contents(self,
                            drive_id: str) -> dict:
@@ -122,14 +122,14 @@ class Drive:
                              includeItemsFromAllDrives='True', corpora='drive',
                              supportsAllDrives='True')
         resp = requests.get(url)
-        return resp.json()
+        return resp.json(), resp.status_code
 
     def get_permissions(self,
                         file_id: str) -> dict:  # TODO test if works for drives
         url = self.build_url(f'files/{file_id}/permissions', fields='*',
                              supportsAllDrives='True')
         resp = requests.get(url)
-        return resp.json()
+        return resp.json(), resp.status_code
 
     # def get_drive_permissions(self, drive_id: str) -> dict:
     #     url = self.build_url(f'files/{drive_id}/permissions',
@@ -141,7 +141,7 @@ class Drive:
     def get_permission(self, file_id: str, permission_id: str) -> dict:
         url = self.build_url(f'files/{file_id}/permissions/{permission_id}')
         resp = requests.get(url)
-        return resp.json()
+        return resp.json(), resp.status_code
 
     # Edit permissions ---------------------------------------------------------
     def remove_permission(self, file_id: str, permission_id: str,
@@ -164,7 +164,7 @@ class Drive:
         url = self.build_url(f'files/{file_id}/permissions/{permission_id}',
                              fields=fields)
         resp = requests.delete(url)
-        return resp.json()
+        return resp.json(), resp.status_code
 
     def update_permission(self, file_id: str, permission_id: str,
                           new_role: str, exp_date: datetime,
@@ -204,8 +204,7 @@ class Drive:
             body = {'role': role}
 
         resp = requests.patch(url, data=body)
-        return resp.json()
-        # TODO handle http reponse code (i.e. 200, 500, etc)
+        return resp.json(), resp.status_code
 
     # Helper Functions ---------------------------------------------------------
     def build_url_backup(self, path, **kwargs):
