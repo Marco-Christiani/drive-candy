@@ -116,17 +116,17 @@ class Drive:
         return resp.json(), resp.status_code
 
     def get_drive_contents(self,
-                           drive_id: str) -> dict:
+                           drive_id: str,fields: Optional[str] = '*') -> dict:
         # TODO document support, fix url (params will be deprecated)
-        url = self.build_url('files/', driveId=drive_id,
+        url = self.build_url('files/', driveId=drive_id, fields=fields,
                              includeItemsFromAllDrives='True', corpora='drive',
                              supportsAllDrives='True')
         resp = requests.get(url)
         return resp.json(), resp.status_code
 
     def get_permissions(self,
-                        file_id: str) -> dict:  # TODO test if works for drives
-        url = self.build_url(f'files/{file_id}/permissions', fields='*',
+                        file_id: str, fields: Optional[str] = '*') -> dict:  # TODO test if works for drives
+        url = self.build_url(f'files/{file_id}/permissions', fields=fields,
                              supportsAllDrives='True')
         resp = requests.get(url)
         return resp.json(), resp.status_code
