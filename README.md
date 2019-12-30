@@ -1,6 +1,5 @@
-# g-candy
-Python package wrappers for Google REST APIs
-### drive-candy (Google Drive v3 API)
+## drive-candy (Google Drive v3 API)
+### Python package for Google REST API
 To set up, you have 2 authorization options:
 1. Using service account: 
 
